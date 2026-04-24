@@ -34,12 +34,12 @@ A professional-grade financial dashboard built to automate the tracking and rank
    git clone [https://github.com/username/broker-ranking-dashboard.git](https://github.com/username/broker-ranking-dashboard.git)
    cd broker-ranking-dashboard
 
-Install dependencies:
+2. ***Install dependencies:
 
 ```Bash
 pip install -r requirements.txt
 ```
-Run the application:
+3. ***Run the application:
 
 ```Bash
 python -m streamlit run app.py```
