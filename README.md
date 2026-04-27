@@ -18,7 +18,7 @@ A professional-grade financial dashboard built to automate the tracking and rank
 - **Python 3.x**
 - **Streamlit** (Frontend & App Framework)
 - **Pandas** (Data Manipulation & Cleaning)
-- **Plotly** (Interactive Interactive Data Visualization)
+- **Plotly** (Interactive Data Visualization)
 
 ## 📁 File Structure
 
