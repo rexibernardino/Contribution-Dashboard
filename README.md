@@ -31,7 +31,7 @@ A professional-grade financial dashboard built to automate the tracking and rank
 
 1. **Clone the repository**:
    ```bash
-   git clone [https://github.com/username/broker-ranking-dashboard.git](https://github.com/username/broker-ranking-dashboard.git)
+   git clone https://github.com/rexibernardino/Contribution-Dashboard/
    cd broker-ranking-dashboard
 
 2. **Install dependencies**:
