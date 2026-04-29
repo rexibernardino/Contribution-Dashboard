@@ -51,10 +51,11 @@ if menu == "Dashboard & Ranking All Categories":
     custom_title = st.sidebar.text_input("Edit Judul Halaman", "Bimasena Contribution and Summary")
 else:
     custom_title = "Broker Contribution Dashboard"
+    
+categories = ["Forex Swap", "Fixed Income", "Money Market"]
 
 if menu == "Dashboard & Ranking Each Category":
     st.sidebar.divider()
-    categories = ["Forex Swap", "Fixed Income", "Money Market"]
     st.sidebar.markdown("### 🔍 Filter Kategori")
     selected_cat = st.sidebar.selectbox("Pilih Kategori Utama", categories)
 
