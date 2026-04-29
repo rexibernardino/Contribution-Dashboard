@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from utils import calculate_ranking, parse_broker_csv, get_dummy_data, load_data_from_gdrive
 
 # Konfigurasi Halaman
-st.set_page_config(page_title="Broker Contribution Dashboard", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Broker Contribution Dashboard", page_icon="📋", layout="wide")
 
 # Inisialisasi Session State
 if 'main_df' not in st.session_state:
