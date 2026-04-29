@@ -262,7 +262,7 @@ elif menu == "Dashboard & Ranking All Categories":
                 rank_m = rank_m.sort_values(by='Volume', ascending=is_asc)
                 
                 fig_m = px.bar(rank_m, x='Volume', y='Broker_Name', text='Volume', 
-                            color_discrete_sequence=[px.colors.qualitative.Plotly[2]],
+                            color_continuous_scale=[px.colors.qualitative.Plotly[2]],
                             title=f"Monthly ({last_month_date.strftime('%B')})")
                 
                 fig_m.update_traces(texttemplate='%{text:.1f}', textposition='outside')
@@ -283,7 +283,7 @@ elif menu == "Dashboard & Ranking All Categories":
                 rank_d = rank_d.sort_values(by='Volume', ascending=is_asc)
                 
                 fig_d = px.bar(rank_d, x='Volume', y='Broker_Name', text='Volume',
-                            color_discrete_sequence=[px.colors.qualitative.Plotly[0]],
+                            color_continuous_scale=[px.colors.qualitative.Plotly[0]],
                             title=f"On going ({latest_date.date()})")
                 
                 fig_d.update_traces(texttemplate='%{text:.1f}', textposition='outside')
