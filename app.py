@@ -9,17 +9,21 @@ st.set_page_config(page_title="Broker Contribution Dashboard", layout="wide")
 
 # Inisialisasi Session State
 if 'main_df' not in st.session_state:
-    # Coba load dari URL yang ada di secrets secara otomatis saat start
+    if 'sheet_title' not in st.session_state:
+        st.session_state.sheet_title = "Broker Contribution Dashboard" # Default
+
     try:
         if "spreadsheet_url" in st.secrets:
-            st.session_state.main_df = load_data_from_gdrive(st.secrets["spreadsheet_url"])
+            df, title = load_data_from_gdrive(st.secrets["spreadsheet_url"])
+            st.session_state.main_df = df
+            st.session_state.sheet_title = title
         else:
             st.session_state.main_df = get_dummy_data()
     except:
         st.session_state.main_df = get_dummy_data()
 
 # --- SIDEBAR NAVIGASI ---
-st.sidebar.title("Broker Contribution Dashboard")
+st.sidebar.title(st.session_state.sheet_title)
 # Fitur Baru: Google Drive Sync
 st.sidebar.markdown("### ☁️ Google Drive Sync")
 default_url = st.secrets.get("spreadsheet_url", "")
@@ -28,8 +32,9 @@ gdrive_url = st.sidebar.text_input("Google Sheet URL", value=default_url)
 if st.sidebar.button("🔄 Sync & Refresh Data"):
     with st.spinner("Sedang menarik data dari Drive..."):
         try:
-            updated_df = load_data_from_gdrive(gdrive_url)
+            updated_df, updated_title = load_data_from_gdrive(gdrive_url)
             st.session_state.main_df = updated_df
+            st.session_state.sheet_title = updated_title
             st.sidebar.success("Berhasil Update!")
             st.rerun() # Refresh dashboard untuk menampilkan data baru
         except Exception as e:
@@ -48,7 +53,7 @@ menu = st.sidebar.radio("Menu", [
 if menu == "Dashboard & Ranking All Categories":
     st.sidebar.divider()
     st.sidebar.markdown("### ✏️ Kustomisasi Judul")
-    custom_title = st.sidebar.text_input("Edit Judul Halaman", "Bimasena Contribution and Summary")
+    custom_title = st.sidebar.text_input("Edit Judul Halaman", value=st.session_state.sheet_title)
 else:
     custom_title = "Broker Contribution Dashboard"
     

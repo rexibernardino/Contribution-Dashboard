@@ -65,6 +65,7 @@ def load_data_from_gdrive(spreadsheet_url):
         client = gspread.authorize(creds)
         
         sheet = client.open_by_url(spreadsheet_url)
+        spreadsheet_title = sheet.title
         
         # MENGAMBIL DATA DARI SEMUA SHEET (Bulan)
         # Karena Anda membagi per bulan, kita akan menggabungkan semuanya
@@ -123,7 +124,7 @@ def load_data_from_gdrive(spreadsheet_url):
 
         final_df['Date'] = final_df['Date'].apply(parse_sheet_date)
         
-        return final_df
+        return final_df, spreadsheet_title
         
     except Exception as e:
         raise Exception(f"Gagal akses Google Drive: {str(e)}")
