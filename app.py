@@ -2,17 +2,39 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
-from utils import calculate_ranking, parse_broker_csv, get_dummy_data
+from utils import calculate_ranking, parse_broker_csv, get_dummy_data, load_data_from_gdrive
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Broker Contribution Dashboard", layout="wide")
 
 # Inisialisasi Session State
 if 'main_df' not in st.session_state:
-    st.session_state.main_df = get_dummy_data()
+    # Coba load dari URL yang ada di secrets secara otomatis saat start
+    try:
+        if "spreadsheet_url" in st.secrets:
+            st.session_state.main_df = load_data_from_gdrive(st.secrets["spreadsheet_url"])
+        else:
+            st.session_state.main_df = get_dummy_data()
+    except:
+        st.session_state.main_df = get_dummy_data()
 
 # --- SIDEBAR NAVIGASI ---
 st.sidebar.title("Broker Contribution Dashboard")
+# Fitur Baru: Google Drive Sync
+st.sidebar.markdown("### ☁️ Google Drive Sync")
+default_url = st.secrets.get("spreadsheet_url", "")
+gdrive_url = st.sidebar.text_input("Google Sheet URL", value=default_url)
+
+if st.sidebar.button("🔄 Sync & Refresh Data"):
+    with st.spinner("Sedang menarik data dari Drive..."):
+        try:
+            updated_df = load_data_from_gdrive(gdrive_url)
+            st.session_state.main_df = updated_df
+            st.sidebar.success("Berhasil Update!")
+            st.rerun() # Refresh dashboard untuk menampilkan data baru
+        except Exception as e:
+            st.sidebar.error(f"Error: {e}")
+
 st.sidebar.divider()
 st.sidebar.markdown("### 📊 Broker Ranking Dashboard Menu")
 menu = st.sidebar.radio("Menu", [
@@ -190,6 +212,16 @@ elif menu == "Input Data Manual":
 elif menu == "Dashboard & Ranking All Categories":
     st.title(custom_title)
     
+    # --- FITUR SORTING DI TAMPILAN UTAMA ---
+    # Menggunakan columns agar radio button tidak memenuhi lebar layar
+    s_col1, s_col2 = st.columns([1, 2]) 
+    with s_col1:
+        sort_choice = st.radio(
+            "Urutkan Volume berdasarkan:", 
+            ["Terbesar (Descending)", "Terkecil (Ascending)"],
+            horizontal=True # Membuat pilihan berjejer ke samping
+        )
+
     # Pengaturan Waktu
     today = datetime.now()
     last_month_date = today.replace(day=1) - timedelta(days=1)
@@ -210,32 +242,57 @@ elif menu == "Dashboard & Ranking All Categories":
     ]
 
     for div in divisi_config:
-        with div["col"]:
-            unit = get_unit(div["name"])
-            st.markdown(f"#### {div['name']} ({unit})")
-            
-            # 1. Monthly Chart (Atas)
-            rank_m = calculate_ranking(df_last_all, div["name"] )
-            fig_m = px.bar(rank_m, x='Broker_Name', y='Volume', text='Volume',
-                           color_discrete_sequence=[px.colors.qualitative.Plotly[2]], # Hijau-ish
-                           title=f"Monthly ({last_month_date.strftime('%B')})")
-            
-            fig_m.update_traces(texttemplate='%{text:.1f}', textposition='outside')
-            fig_m.update_layout(height=250, margin=dict(l=10, r=10, t=30, b=10), showlegend=False, xaxis_title="")
-            st.plotly_chart(fig_m, use_container_width=True, config={'displayModeBar': True})
+            with div["col"]:
+                unit = get_unit(div["name"])
+                st.markdown(f"#### {div['name']} ({unit})")
+                
+                # --- LOGIKA SORTING ---
+                is_asc = True if sort_choice == "Terkecil (Ascending)" else False
+                
+                # 1. Monthly Chart
+                rank_m = calculate_ranking(df_last_all, div["name"])
+                # Terapkan sorting ke dataframe
+                rank_m = rank_m.sort_values(by='Volume', ascending=is_asc)
+                
+                fig_m = px.bar(rank_m, x='Volume', y='Broker_Name', text='Volume', 
+                            color_discrete_sequence=[px.colors.qualitative.Plotly[2]],
+                            title=f"Monthly ({last_month_date.strftime('%B')})")
+                
+                fig_m.update_traces(texttemplate='%{text:.1f}', textposition='outside')
+                
+                # MENGAKTIFKAN LABEL VOLUME DAN BROKER NAME
+                fig_m.update_layout(
+                    height=300, # Sedikit ditambah agar label axis tidak terpotong
+                    margin=dict(l=10, r=10, t=30, b=40), 
+                    showlegend=False, 
+                    xaxis_title="Volume",      # Menampilkan tulisan "Volume" di bawah angka
+                    yaxis_title="Broker Name"  # Menampilkan tulisan "Broker Name" di samping
+                )
+                st.plotly_chart(fig_m, use_container_width=True, config={'displayModeBar': True})
 
-            # 2. Daily Chart (Bawah)
-            rank_d = calculate_ranking(df_now_all, div["name"])
-            fig_d = px.bar(rank_d, x='Broker_Name', y='Volume', text='Volume',
-                           color_discrete_sequence=[px.colors.qualitative.Plotly[0]], # Biru-ish
-                           title=f"On going ({latest_date.date()})")
-            
-            fig_d.update_traces(texttemplate='%{text:.1f}', textposition='outside')
-            fig_d.update_layout(height=250, margin=dict(l=10, r=10, t=30, b=10), showlegend=False, xaxis_title="")
-            st.plotly_chart(fig_d, use_container_width=True, config={'displayModeBar': True})
-
-# Footer
-st.sidebar.divider()
-csv = st.session_state.main_df.to_csv(index=False).encode('utf-8')
-st.sidebar.markdown("### 📂 Export Data")
-st.sidebar.download_button("📥 Export CSV", csv, "data.csv", "text/csv")
+                # 2. Daily Chart
+                rank_d = calculate_ranking(df_now_all, div["name"])
+                # Terapkan sorting ke dataframe
+                rank_d = rank_d.sort_values(by='Volume', ascending=is_asc)
+                
+                fig_d = px.bar(rank_d, x='Volume', y='Broker_Name', text='Volume',
+                            color_discrete_sequence=[px.colors.qualitative.Plotly[0]],
+                            title=f"On going ({latest_date.date()})")
+                
+                fig_d.update_traces(texttemplate='%{text:.1f}', textposition='outside')
+                
+                # MENGAKTIFKAN LABEL VOLUME DAN BROKER NAME
+                fig_d.update_layout(
+                    height=300, 
+                    margin=dict(l=10, r=10, t=30, b=40), 
+                    showlegend=False, 
+                    xaxis_title="Volume",      # Menampilkan tulisan "Volume" di bawah angka
+                    yaxis_title="Broker Name"  # Menampilkan tulisan "Broker Name" di samping
+                )
+                st.plotly_chart(fig_d, use_container_width=True, config={'displayModeBar': True})
+                
+# # Footer
+# st.sidebar.divider()
+# csv = st.session_state.main_df.to_csv(index=False).encode('utf-8')
+# st.sidebar.markdown("### 📂 Export Data")
+# st.sidebar.download_button("📥 Export CSV", csv, "data.csv", "text/csv")
