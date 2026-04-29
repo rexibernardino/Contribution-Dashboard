@@ -52,10 +52,11 @@ if menu == "Dashboard & Ranking All Categories":
 else:
     custom_title = "Broker Contribution Dashboard"
 
-st.sidebar.divider()
-categories = ["Forex Swap", "Fixed Income", "Money Market"]
-st.sidebar.markdown("### 🔍 Filter Kategori")
-selected_cat = st.sidebar.selectbox("Pilih Kategori Utama", categories)
+if menu == "Dashboard & Ranking Each Category":
+    st.sidebar.divider()
+    categories = ["Forex Swap", "Fixed Income", "Money Market"]
+    st.sidebar.markdown("### 🔍 Filter Kategori")
+    selected_cat = st.sidebar.selectbox("Pilih Kategori Utama", categories)
 
 def get_unit(cat):
     return "Mio USD" if cat == "Forex Swap" else "IDR Bn"
