@@ -24,7 +24,7 @@ if 'main_df' not in st.session_state:
 
 # --- SIDEBAR NAVIGASI ---
 st.sidebar.title(st.session_state.sheet_title)
-# Fitur Baru: Google Drive Sync
+# Google Drive Sync
 st.sidebar.markdown("### ☁️ Google Drive Sync")
 default_url = st.secrets.get("spreadsheet_url", "")
 gdrive_url = st.sidebar.text_input("Google Sheet URL", value=default_url)
