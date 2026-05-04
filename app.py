@@ -273,7 +273,7 @@ elif menu == "Dashboard & Ranking All Categories":
     else:
         # Jika memilih bulan spesifik, judul menjadi "Monthly [Bulan Tahun]"[cite: 1]
         df_right_all = df_master[df_master['Month_Year'] == selected_ongoing_opt]
-        right_chart_label = f"Monthly {selected_ongoing_opt}"
+        right_chart_label = f"Monthly ({selected_ongoing_opt})"
     
     col_fi, col_mm, col_fx = st.columns(3)
     divisi_config = [
