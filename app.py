@@ -220,7 +220,6 @@ elif menu == "Dashboard & Ranking All Categories":
     st.title(custom_title)
     
     # --- FITUR SORTING DI TAMPILAN UTAMA ---
-    # Menggunakan columns agar radio button tidak memenuhi lebar layar
     s_col1, s_col2 = st.columns([1, 2]) 
     with s_col1:
         sort_choice = st.radio(
@@ -230,15 +229,22 @@ elif menu == "Dashboard & Ranking All Categories":
         )
 
     # Pengaturan Waktu
-    today = datetime.now()
-    last_month_date = today.replace(day=1) - timedelta(days=1)
-    df_master = st.session_state.main_df
+    today_now = datetime.now()
+    current_month = today_now.month
+    current_year = today_now.year
+    current_date_str = today_now.strftime('%d %B %Y')
     
+    df_master = st.session_state.main_df
+    df_master['Date'] = pd.to_datetime(df_master['Date'])
+
     # Filter Data Bulanan dan Terkini
     df_last_all = df_master[pd.to_datetime(df_master['Date']).dt.month == last_month_date.month]
     latest_date = pd.to_datetime(df_master['Date']).max() if not df_master.empty else today
-    df_now_all = df_master[pd.to_datetime(df_master['Date']) == latest_date]
-
+    df_now_all = df_master[
+        (df_master['Date'].dt.month == current_month) & 
+        (df_master['Date'].dt.year == current_year)
+    ]
+    
     # Grid Layout: 3 Kolom (Satu kolom per Divisi)
     col_fi, col_mm, col_fx = st.columns(3)
     
@@ -282,9 +288,15 @@ elif menu == "Dashboard & Ranking All Categories":
                 # Terapkan sorting ke dataframe
                 rank_d = rank_d.sort_values(by='Volume', ascending=is_asc)
                 
+                # Jika data bulan berjalan ditemukan di sheet, tampilkan tanggal hari ini
+                if not rank_d.empty:
+                    chart_title = f"On going ({current_date_str})"
+                else:
+                    chart_title = f"On going (No Data for {today_now.strftime('%B %Y')})"
+
                 fig_d = px.bar(rank_d, x='Volume', y='Broker_Name', text='Volume',
                             color_discrete_sequence= [px.colors.qualitative.Plotly[0]],
-                            title=f"On going ({latest_date.date()})")
+                            title=chart_title)
                 
                 fig_d.update_traces(texttemplate='%{text:.1f}', textposition='outside')
                 
