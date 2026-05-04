@@ -239,6 +239,7 @@ elif menu == "Dashboard & Ranking All Categories":
 
     df_master = st.session_state.main_df
     df_master['Date'] = pd.to_datetime(df_master['Date'])
+    df_master['Month_Year'] = df_master['Date'].dt.strftime('%B %Y')
     available_months = sorted(df_master['Month_Year'].unique(), reverse=True)
 
     # 1. Dropdown untuk Section "Monthly"
@@ -260,7 +261,7 @@ elif menu == "Dashboard & Ranking All Categories":
     )
     
     # Filter Data Bulanan dan Terkini
-    df_last_all = df_master[pd.to_datetime(df_master['Date']).dt.month == last_month_date.month]
+    df_last_all = df_master[df_master['Month_Year'] == selected_monthly_str]
     latest_date = pd.to_datetime(df_master['Date']).max() if not df_master.empty else today
     df_now_all = df_master[
         (df_master['Date'].dt.month == current_month) & 
