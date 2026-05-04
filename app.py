@@ -239,7 +239,26 @@ elif menu == "Dashboard & Ranking All Categories":
 
     df_master = st.session_state.main_df
     df_master['Date'] = pd.to_datetime(df_master['Date'])
+    available_months = sorted(df_master['Month_Year'].unique(), reverse=True)
 
+    # 1. Dropdown untuk Section "Monthly"
+    # Default: Bulan lalu dari sistem
+    default_monthly = (datetime.now().replace(day=1) - timedelta(days=1)).strftime('%B %Y')
+    selected_monthly_str = st.sidebar.selectbox(
+        "Pilih Periode Monthly:", 
+        available_months, 
+        index=available_months.index(default_monthly) if default_monthly in available_months else 0
+    )
+
+    # 2. Dropdown untuk Section "On going"
+    # Default: Bulan sekarang dari sistem
+    default_ongoing = datetime.now().strftime('%B %Y')
+    selected_ongoing_str = st.sidebar.selectbox(
+        "Pilih Periode On going:", 
+        available_months, 
+        index=available_months.index(default_ongoing) if default_ongoing in available_months else 0
+    )
+    
     # Filter Data Bulanan dan Terkini
     df_last_all = df_master[pd.to_datetime(df_master['Date']).dt.month == last_month_date.month]
     latest_date = pd.to_datetime(df_master['Date']).max() if not df_master.empty else today
@@ -267,12 +286,11 @@ elif menu == "Dashboard & Ranking All Categories":
                 
                 # 1. Monthly Chart
                 rank_m = calculate_ranking(df_last_all, div["name"])
-                # Terapkan sorting ke dataframe
                 rank_m = rank_m.sort_values(by='Volume', ascending=is_asc)
                 
                 fig_m = px.bar(rank_m, x='Volume', y='Broker_Name', text='Volume', 
                             color_discrete_sequence=[px.colors.qualitative.Plotly[2]],
-                            title=f"Monthly ({last_month_date.strftime('%B')})")
+                            title=f"Monthly ({selected_monthly_str})")
                 
                 fig_m.update_traces(texttemplate='%{text:.0f}', textposition='outside')
                 
@@ -293,9 +311,9 @@ elif menu == "Dashboard & Ranking All Categories":
                 
                 # Jika data bulan berjalan ditemukan di sheet, tampilkan tanggal hari ini
                 if not rank_d.empty:
-                    chart_title = f"On going ({current_date_str})"
+                    chart_title = f"On going ({selected_ongoing_str})"
                 else:
-                    chart_title = f"On going (No Data for {today.strftime('%B %Y')})"
+                    chart_title = f"On going (No Data for {selected_ongoing_str})"
 
                 fig_d = px.bar(rank_d, x='Volume', y='Broker_Name', text='Volume',
                             color_discrete_sequence= [px.colors.qualitative.Plotly[0]],
