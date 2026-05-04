@@ -306,22 +306,15 @@ elif menu == "Dashboard & Ranking All Categories":
             
             # Logika Penentuan Judul: 
             # Jika user pilih bulan sekarang, tampilkan Tanggal Real-time. Jika tidak, tampilkan nama bulannya saja.
-            real_time_month = today.strftime('%B %Y')
-            if selected_ongoing_opt == "On going (Real-time)":
-                chart_title = f"On going ({today.strftime('%d %B %Y')})"
-            else:
-                chart_title = f"On going ({selected_ongoing_opt})"
-
-            if rank_d.empty:
-                chart_title = f"No Data ({selected_ongoing_opt})"
+            final_title = right_chart_label if not rank_d.empty else f"No Data ({selected_ongoing_opt})"
 
             fig_d = px.bar(rank_d, x='Volume', y='Broker_Name', text='Volume',
                         color_discrete_sequence= [px.colors.qualitative.Plotly[0]],
-                        title=chart_title) # Judul Dinamis mengikuti dropdown[cite: 1]
+                        title=final_title)
             
             fig_d.update_traces(texttemplate='%{text:.0f}', textposition='outside')
             fig_d.update_layout(height=300, margin=dict(l=10, r=10, t=30, b=40), showlegend=False)
-            st.plotly_chart(fig_d, use_container_width=True, key=f"o_{div['name']}_{selected_ongoing_opt}")
+            st.plotly_chart(fig_d, use_container_width=True, key=f"D_{div['name']}_{selected_ongoing_opt}")
 
 # # Footer
 # st.sidebar.divider()
