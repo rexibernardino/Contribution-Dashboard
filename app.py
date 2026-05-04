@@ -241,7 +241,6 @@ elif menu == "Dashboard & Ranking All Categories":
     dropdown_options = ["On going (Real-time)"] + unique_months
 
     # 2. Sidebar Dropdown
-    st.sidebar.divider()
     st.sidebar.markdown("### 🗓️ Filter Periode Dashboard")
     
     today = datetime.now()
