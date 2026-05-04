@@ -47,7 +47,7 @@ menu = st.sidebar.radio("Menu", [
     "Dashboard & Ranking All Categories", 
     "Import CSV: Monthly (Bulan Lalu)", 
     "Import CSV: Daily (Harian)",
-    "Input Data Manual"
+    "Data Management"
 ])
 
 if menu == "Dashboard & Ranking All Categories":
@@ -195,7 +195,7 @@ elif menu in ["Import CSV: Monthly (Bulan Lalu)", "Import CSV: Daily (Harian)"]:
             st.error(f"Error: {e}")
 
 # --- MENU 4: INPUT MANUAL ---
-elif menu == "Input Data Manual":
+elif menu == "Data Management":
     st.title("📝 Management")
     t1, t2 = st.tabs(["Tambah", "Edit/Hapus"])
     with t1:
@@ -219,119 +219,95 @@ elif menu == "Input Data Manual":
 elif menu == "Dashboard & Ranking All Categories":
     st.title(custom_title)
     
-    # --- FITUR SORTING DI TAMPILAN UTAMA ---
+    # --- FITUR SORTING ---
     s_col1, s_col2 = st.columns([1, 2]) 
     with s_col1:
         sort_choice = st.radio(
             "Urutkan Volume berdasarkan:", 
             ["Terbesar (Descending)", "Terkecil (Ascending)"],
-            horizontal=True # Membuat pilihan berjejer ke samping
+            horizontal=True
         )
 
-    # Pengaturan Waktu
-    today = datetime.now()
-    current_month = today.month
-    current_year = today.year
-    current_date_str = today.strftime('%d %B %Y')
-    
-    first_day_curr = today.replace(day=1)
-    last_month_date = first_day_curr - timedelta(days=1)
-
-    df_master = st.session_state.main_df
+    # 1. Menyiapkan Data Master & Kolom Filter
+    df_master = st.session_state.main_df.copy()
     df_master['Date'] = pd.to_datetime(df_master['Date'])
+    
+    # Buat kolom string untuk filter dropdown
     df_master['Month_Year'] = df_master['Date'].dt.strftime('%B %Y')
     available_months = sorted(df_master['Month_Year'].unique(), reverse=True)
 
-    # 1. Dropdown untuk Section "Monthly"
-    # Default: Bulan lalu dari sistem
-    default_monthly = (datetime.now().replace(day=1) - timedelta(days=1)).strftime('%B %Y')
+    # 2. Sidebar Dropdown
+    st.sidebar.divider()
+    st.sidebar.markdown("### 🗓️ Filter Periode Dashboard")
+    
+    today = datetime.now()
+    default_m = (today.replace(day=1) - timedelta(days=1)).strftime('%B %Y')
+    default_o = today.strftime('%B %Y')
+
     selected_monthly_str = st.sidebar.selectbox(
         "Pilih Periode Monthly:", 
         available_months, 
-        index=available_months.index(default_monthly) if default_monthly in available_months else 0
+        index=available_months.index(default_m) if default_m in available_months else 0
     )
 
-    # 2. Dropdown untuk Section "On going"
-    # Default: Bulan sekarang dari sistem
-    default_ongoing = datetime.now().strftime('%B %Y')
     selected_ongoing_str = st.sidebar.selectbox(
         "Pilih Periode On going:", 
         available_months, 
-        index=available_months.index(default_ongoing) if default_ongoing in available_months else 0
+        index=available_months.index(default_o) if default_o in available_months else 0
     )
     
-    # Filter Data Bulanan dan Terkini
+    # 3. Filter Data Berdasarkan Pilihan Dropdown
     df_last_all = df_master[df_master['Month_Year'] == selected_monthly_str]
-    latest_date = pd.to_datetime(df_master['Date']).max() if not df_master.empty else today
-    df_now_all = df_master[
-        (df_master['Date'].dt.month == current_month) & 
-        (df_master['Date'].dt.year == current_year)
-    ]
+    df_now_all = df_master[df_master['Month_Year'] == selected_ongoing_str]
     
-    # Grid Layout: 3 Kolom (Satu kolom per Divisi)
     col_fi, col_mm, col_fx = st.columns(3)
-    
     divisi_config = [
-        {"name": "Fixed Income", "col": col_fi, "color_m": "Greens", "color_d": "Blues"},
-        {"name": "Money Market", "col": col_mm, "color_m": "Greens", "color_d": "Blues"},
-        {"name": "Forex Swap", "col": col_fx, "color_m": "Greens", "color_d": "Blues"}
+        {"name": "Fixed Income", "col": col_fi},
+        {"name": "Money Market", "col": col_mm},
+        {"name": "Forex Swap", "col": col_fx}
     ]
 
     for div in divisi_config:
-            with div["col"]:
-                unit = get_unit(div["name"])
-                st.markdown(f"#### {div['name']} ({unit})")
-                
-                # --- LOGIKA SORTING ---
-                is_asc = True if sort_choice == "Terkecil (Ascending)" else False
-                
-                # 1. Monthly Chart
-                rank_m = calculate_ranking(df_last_all, div["name"])
-                rank_m = rank_m.sort_values(by='Volume', ascending=is_asc)
-                
-                fig_m = px.bar(rank_m, x='Volume', y='Broker_Name', text='Volume', 
-                            color_discrete_sequence=[px.colors.qualitative.Plotly[2]],
-                            title=f"Monthly ({selected_monthly_str})")
-                
-                fig_m.update_traces(texttemplate='%{text:.0f}', textposition='outside')
-                
-                # MENGAKTIFKAN LABEL VOLUME DAN BROKER NAME
-                fig_m.update_layout(
-                    height=300, # Sedikit ditambah agar label axis tidak terpotong
-                    margin=dict(l=10, r=10, t=30, b=40), 
-                    showlegend=False, 
-                    xaxis_title="Volume",      # Menampilkan tulisan "Volume" di bawah angka
-                    yaxis_title="Broker Name"  # Menampilkan tulisan "Broker Name" di samping
-                )
-                st.plotly_chart(fig_m, use_container_width=True, config={'displayModeBar': True},key=f"chart_monthly_{div['name'].replace(' ', '_')}")
-        
-                # 2. Daily Chart
-                rank_d = calculate_ranking(df_now_all, div["name"])
-                # Terapkan sorting ke dataframe
-                rank_d = rank_d.sort_values(by='Volume', ascending=is_asc)
-                
-                # Jika data bulan berjalan ditemukan di sheet, tampilkan tanggal hari ini
-                if not rank_d.empty:
-                    chart_title = f"On going ({selected_ongoing_str})"
-                else:
-                    chart_title = f"On going (No Data for {selected_ongoing_str})"
+        with div["col"]:
+            unit = get_unit(div["name"])
+            st.markdown(f"#### {div['name']} ({unit})")
+            is_asc = True if sort_choice == "Terkecil (Ascending)" else False
+            
+            # --- CHART 1: MONTHLY ---
+            rank_m = calculate_ranking(df_last_all, div["name"])
+            rank_m = rank_m.sort_values(by='Volume', ascending=is_asc)
+            
+            fig_m = px.bar(rank_m, x='Volume', y='Broker_Name', text='Volume', 
+                        color_discrete_sequence=[px.colors.qualitative.Plotly[2]],
+                        title=f"Monthly ({selected_monthly_str})") # Judul Dinamis[cite: 1]
+            
+            fig_m.update_traces(texttemplate='%{text:.0f}', textposition='outside')
+            fig_m.update_layout(height=300, margin=dict(l=10, r=10, t=30, b=40), showlegend=False)
+            st.plotly_chart(fig_m, use_container_width=True, key=f"m_{div['name']}_{selected_monthly_str}")
 
-                fig_d = px.bar(rank_d, x='Volume', y='Broker_Name', text='Volume',
-                            color_discrete_sequence= [px.colors.qualitative.Plotly[0]],
-                            title=chart_title)
-                
-                fig_d.update_traces(texttemplate='%{text:.0f}', textposition='outside')
-                
-                # MENGAKTIFKAN LABEL VOLUME DAN BROKER NAME
-                fig_d.update_layout(
-                    height=300, 
-                    margin=dict(l=10, r=10, t=30, b=40), 
-                    showlegend=False, 
-                    xaxis_title="Volume",      # Menampilkan tulisan "Volume" di bawah angka
-                    yaxis_title="Broker Name"  # Menampilkan tulisan "Broker Name" di samping
-                )
-                st.plotly_chart(fig_d, use_container_width=True, config={'displayModeBar': True}, key=f"chart_ongoing_{div['name'].replace(' ', '_')}")
-                
+            # --- CHART 2: ON GOING (DINAMIS) ---
+            rank_d = calculate_ranking(df_now_all, div["name"])
+            rank_d = rank_d.sort_values(by='Volume', ascending=is_asc)
+            
+            # Logika Penentuan Judul: 
+            # Jika user pilih bulan sekarang, tampilkan Tanggal Real-time. Jika tidak, tampilkan nama bulannya saja.
+            real_time_month = today.strftime('%B %Y')
+            if selected_ongoing_str == real_time_month:
+                chart_title = f"On going ({today.strftime('%d %B %Y')})"
+            else:
+                chart_title = f"On going ({selected_ongoing_str})"
+
+            if rank_d.empty:
+                chart_title = f"No Data ({selected_ongoing_str})"
+
+            fig_d = px.bar(rank_d, x='Volume', y='Broker_Name', text='Volume',
+                        color_discrete_sequence= [px.colors.qualitative.Plotly[0]],
+                        title=chart_title) # Judul Dinamis mengikuti dropdown[cite: 1]
+            
+            fig_d.update_traces(texttemplate='%{text:.0f}', textposition='outside')
+            fig_d.update_layout(height=300, margin=dict(l=10, r=10, t=30, b=40), showlegend=False)
+            st.plotly_chart(fig_d, use_container_width=True, key=f"o_{div['name']}_{selected_ongoing_str}")
+
 # # Footer
 # st.sidebar.divider()
 # csv = st.session_state.main_df.to_csv(index=False).encode('utf-8')
