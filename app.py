@@ -236,6 +236,10 @@ elif menu == "Dashboard & Ranking All Categories":
     df_master['Month_Year'] = df_master['Date'].dt.strftime('%B %Y')
     available_months = sorted(df_master['Month_Year'].unique(), reverse=True)
 
+    # Ambil daftar bulan unik dan tambahkan opsi "On going (Real-time)" di paling atas
+    unique_months = sorted(df_master['Month_Year'].unique(), reverse=True)
+    dropdown_options = ["On going (Real-time)"] + unique_months
+
     # 2. Sidebar Dropdown
     st.sidebar.divider()
     st.sidebar.markdown("### 🗓️ Filter Periode Dashboard")
@@ -244,21 +248,32 @@ elif menu == "Dashboard & Ranking All Categories":
     default_m = (today.replace(day=1) - timedelta(days=1)).strftime('%B %Y')
     default_o = today.strftime('%B %Y')
 
+    # Dropdown 1: Monthly (Tetap seperti sebelumnya)
     selected_monthly_str = st.sidebar.selectbox(
         "Pilih Periode Monthly:", 
-        available_months, 
-        index=available_months.index(default_m) if default_m in available_months else 0
+        unique_months, 
+        index=unique_months.index(default_m) if default_m in unique_months else 0
     )
 
-    selected_ongoing_str = st.sidebar.selectbox(
-        "Pilih Periode On going:", 
-        available_months, 
-        index=available_months.index(default_o) if default_o in available_months else 0
+    # Dropdown 2: On going / Monthly lain
+    selected_ongoing_opt = st.sidebar.selectbox(
+        "Pilih Periode Dashboard Kanan:", 
+        dropdown_options,
+        index=0 # Default ke On going (Real-time)
     )
     
     # 3. Filter Data Berdasarkan Pilihan Dropdown
     df_last_all = df_master[df_master['Month_Year'] == selected_monthly_str]
-    df_now_all = df_master[df_master['Month_Year'] == selected_ongoing_str]
+    
+    # Filter Data Kanan & Penentuan Label Judul
+    if selected_ongoing_opt == "On going (Real-time)":
+        current_my = today.strftime('%B %Y')
+        df_right_all = df_master[df_master['Month_Year'] == current_my]
+        right_chart_label = f"On going ({today.strftime('%d %B %Y')})"
+    else:
+        # Jika memilih bulan spesifik, judul menjadi "Monthly [Bulan Tahun]"[cite: 1]
+        df_right_all = df_master[df_master['Month_Year'] == selected_ongoing_opt]
+        right_chart_label = f"Monthly {selected_ongoing_opt}"
     
     col_fi, col_mm, col_fx = st.columns(3)
     divisi_config = [
@@ -286,19 +301,19 @@ elif menu == "Dashboard & Ranking All Categories":
             st.plotly_chart(fig_m, use_container_width=True, key=f"m_{div['name']}_{selected_monthly_str}")
 
             # --- CHART 2: ON GOING (DINAMIS) ---
-            rank_d = calculate_ranking(df_now_all, div["name"])
+            rank_d = calculate_ranking(df_right_all, div["name"])
             rank_d = rank_d.sort_values(by='Volume', ascending=is_asc)
             
             # Logika Penentuan Judul: 
             # Jika user pilih bulan sekarang, tampilkan Tanggal Real-time. Jika tidak, tampilkan nama bulannya saja.
             real_time_month = today.strftime('%B %Y')
-            if selected_ongoing_str == real_time_month:
+            if selected_ongoing_opt == "On going (Real-time)":
                 chart_title = f"On going ({today.strftime('%d %B %Y')})"
             else:
-                chart_title = f"On going ({selected_ongoing_str})"
+                chart_title = f"On going ({selected_ongoing_opt})"
 
             if rank_d.empty:
-                chart_title = f"No Data ({selected_ongoing_str})"
+                chart_title = f"No Data ({selected_ongoing_opt})"
 
             fig_d = px.bar(rank_d, x='Volume', y='Broker_Name', text='Volume',
                         color_discrete_sequence= [px.colors.qualitative.Plotly[0]],
@@ -306,7 +321,7 @@ elif menu == "Dashboard & Ranking All Categories":
             
             fig_d.update_traces(texttemplate='%{text:.0f}', textposition='outside')
             fig_d.update_layout(height=300, margin=dict(l=10, r=10, t=30, b=40), showlegend=False)
-            st.plotly_chart(fig_d, use_container_width=True, key=f"o_{div['name']}_{selected_ongoing_str}")
+            st.plotly_chart(fig_d, use_container_width=True, key=f"o_{div['name']}_{selected_ongoing_opt}")
 
 # # Footer
 # st.sidebar.divider()
