@@ -229,12 +229,12 @@ elif menu == "Dashboard & Ranking All Categories":
         )
 
     # Pengaturan Waktu
-    today_now = datetime.now()
-    current_month = today_now.month
-    current_year = today_now.year
-    current_date_str = today_now.strftime('%d %B %Y')
+    today = datetime.now()
+    current_month = today.month
+    current_year = today.year
+    current_date_str = today.strftime('%d %B %Y')
     
-    first_day_curr = today_now.replace(day=1)
+    first_day_curr = today.replace(day=1)
     last_month_date = first_day_curr - timedelta(days=1)
 
     df_master = st.session_state.main_df
@@ -242,7 +242,7 @@ elif menu == "Dashboard & Ranking All Categories":
 
     # Filter Data Bulanan dan Terkini
     df_last_all = df_master[pd.to_datetime(df_master['Date']).dt.month == last_month_date.month]
-    latest_date = pd.to_datetime(df_master['Date']).max() if not df_master.empty else today_now
+    latest_date = pd.to_datetime(df_master['Date']).max() if not df_master.empty else today
     df_now_all = df_master[
         (df_master['Date'].dt.month == current_month) & 
         (df_master['Date'].dt.year == current_year)
@@ -284,8 +284,8 @@ elif menu == "Dashboard & Ranking All Categories":
                     xaxis_title="Volume",      # Menampilkan tulisan "Volume" di bawah angka
                     yaxis_title="Broker Name"  # Menampilkan tulisan "Broker Name" di samping
                 )
-                st.plotly_chart(fig_m, use_container_width=True, config={'displayModeBar': True})
-
+                st.plotly_chart(fig_m, use_container_width=True, config={'displayModeBar': True},key=f"chart_monthly_{div['name'].replace(' ', '_')}")
+        
                 # 2. Daily Chart
                 rank_d = calculate_ranking(df_now_all, div["name"])
                 # Terapkan sorting ke dataframe
@@ -295,7 +295,7 @@ elif menu == "Dashboard & Ranking All Categories":
                 if not rank_d.empty:
                     chart_title = f"On going ({current_date_str})"
                 else:
-                    chart_title = f"On going (No Data for {today_now.strftime('%B %Y')})"
+                    chart_title = f"On going (No Data for {today.strftime('%B %Y')})"
 
                 fig_d = px.bar(rank_d, x='Volume', y='Broker_Name', text='Volume',
                             color_discrete_sequence= [px.colors.qualitative.Plotly[0]],
@@ -311,7 +311,7 @@ elif menu == "Dashboard & Ranking All Categories":
                     xaxis_title="Volume",      # Menampilkan tulisan "Volume" di bawah angka
                     yaxis_title="Broker Name"  # Menampilkan tulisan "Broker Name" di samping
                 )
-                st.plotly_chart(fig_d, use_container_width=True, config={'displayModeBar': True})
+                st.plotly_chart(fig_d, use_container_width=True, config={'displayModeBar': True}, key=f"chart_ongoing_{div['name'].replace(' ', '_')}")
                 
 # # Footer
 # st.sidebar.divider()
