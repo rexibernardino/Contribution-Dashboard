@@ -146,29 +146,6 @@ if menu == "Dashboard & Ranking Each Category":
         fig_bar.update_traces(textposition='outside', texttemplate='%{text:.0f}')
         st.plotly_chart(fig_bar, use_container_width=True)
 
-    # # Pie Chart untuk Monthly (Bulan Lalu)
-    # with v_col1:
-    #     st.subheader(f"Monthly Volume ({last_month_date.strftime('%B')})")
-        
-    #     # Membuat Pie Chart
-    #     fig_pie = px.pie(rank_last, 
-    #                     values='Volume', 
-    #                     names='Broker Name', 
-    #                     hole=0.4,
-    #                     # Menambahkan data volume agar bisa dipanggil di template
-    #                     custom_data=['Volume']) 
-        
-    #     # Mengatur agar menampilkan Label, Persentase, dan Nilai Volume di dalam chart
-    #     fig_pie.update_traces(
-    #         textposition='inside', 
-    #         textinfo='percent+label+value',
-    #         # %{value:.2f} menampilkan angka volume dengan 2 desimal
-    #         # %{percent} menampilkan persentase otomatis dari Plotly
-    #         texttemplate='%{label}<br>%{value:.2f}<br>(%{percent})'
-    #     )
-        
-        # st.plotly_chart(fig_pie, use_container_width=True)
-
 # --- MENU 2 & 3: IMPORT ---
 elif menu in ["Import CSV: Monthly (Bulan Lalu)", "Import CSV: Daily (Harian)"]:
     is_monthly = "Monthly" in menu
@@ -314,9 +291,3 @@ elif menu == "Dashboard & Ranking All Categories":
             fig_d.update_traces(texttemplate='%{text:.0f}', textposition='outside')
             fig_d.update_layout(height=300, margin=dict(l=10, r=10, t=30, b=40), showlegend=False)
             st.plotly_chart(fig_d, use_container_width=True, key=f"D_{div['name']}_{selected_ongoing_opt}")
-
-# # Footer
-# st.sidebar.divider()
-# csv = st.session_state.main_df.to_csv(index=False).encode('utf-8')
-# st.sidebar.markdown("### 📂 Export Data")
-# st.sidebar.download_button("📥 Export CSV", csv, "data.csv", "text/csv")
