@@ -124,7 +124,7 @@ if menu == "Dashboard & Ranking Each Category":
         # Mengatur posisi label angka dan format desimal
         fig_monthly_bar.update_traces(
             textposition='outside', 
-            texttemplate='%{text:.2f}'
+            texttemplate='%{text:.0f}'
         )
         
         # Mengatur layout agar nama broker tidak saling tumpang tindih jika datanya banyak
@@ -143,7 +143,7 @@ if menu == "Dashboard & Ranking Each Category":
 
         
         # Mengatur posisi angka agar berada di luar/atas bar dan format angka
-        fig_bar.update_traces(textposition='outside', texttemplate='%{text:.2f}')
+        fig_bar.update_traces(textposition='outside', texttemplate='%{text:.0f}')
         st.plotly_chart(fig_bar, use_container_width=True)
 
     # # Pie Chart untuk Monthly (Bulan Lalu)
@@ -274,7 +274,7 @@ elif menu == "Dashboard & Ranking All Categories":
                             color_discrete_sequence=[px.colors.qualitative.Plotly[2]],
                             title=f"Monthly ({last_month_date.strftime('%B')})")
                 
-                fig_m.update_traces(texttemplate='%{text:.1f}', textposition='outside')
+                fig_m.update_traces(texttemplate='%{text:.0f}', textposition='outside')
                 
                 # MENGAKTIFKAN LABEL VOLUME DAN BROKER NAME
                 fig_m.update_layout(
@@ -301,7 +301,7 @@ elif menu == "Dashboard & Ranking All Categories":
                             color_discrete_sequence= [px.colors.qualitative.Plotly[0]],
                             title=chart_title)
                 
-                fig_d.update_traces(texttemplate='%{text:.1f}', textposition='outside')
+                fig_d.update_traces(texttemplate='%{text:.0f}', textposition='outside')
                 
                 # MENGAKTIFKAN LABEL VOLUME DAN BROKER NAME
                 fig_d.update_layout(
