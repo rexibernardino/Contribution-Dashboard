@@ -250,14 +250,14 @@ elif menu == "Dashboard & Ranking All Categories":
 
     # Dropdown 1: Monthly (Tetap seperti sebelumnya)
     selected_monthly_str = st.sidebar.selectbox(
-        "Pilih Periode Monthly:", 
+        "Pilih Periode Tabel Atas:", 
         unique_months, 
         index=unique_months.index(default_m) if default_m in unique_months else 0
     )
 
     # Dropdown 2: On going / Monthly lain
     selected_ongoing_opt = st.sidebar.selectbox(
-        "Pilih Periode Dashboard Kanan:", 
+        "Pilih Periode Tabel Bawah:", 
         dropdown_options,
         index=0 # Default ke On going (Real-time)
     )
