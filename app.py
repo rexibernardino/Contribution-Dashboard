@@ -234,12 +234,15 @@ elif menu == "Dashboard & Ranking All Categories":
     current_year = today_now.year
     current_date_str = today_now.strftime('%d %B %Y')
     
+    first_day_curr = today_now.replace(day=1)
+    last_month_date = first_day_curr - timedelta(days=1)
+
     df_master = st.session_state.main_df
     df_master['Date'] = pd.to_datetime(df_master['Date'])
 
     # Filter Data Bulanan dan Terkini
     df_last_all = df_master[pd.to_datetime(df_master['Date']).dt.month == last_month_date.month]
-    latest_date = pd.to_datetime(df_master['Date']).max() if not df_master.empty else today
+    latest_date = pd.to_datetime(df_master['Date']).max() if not df_master.empty else today_now
     df_now_all = df_master[
         (df_master['Date'].dt.month == current_month) & 
         (df_master['Date'].dt.year == current_year)
